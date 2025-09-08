@@ -1,12 +1,6 @@
 {
     # Enable FrankenPHP
     frankenphp
-    # Enable HTTP/3
-    servers {
-        protocol {
-            experimental_http3
-        }
-    }
 }
 
 # Development
@@ -14,14 +8,11 @@
     # Set root directory
     root * /app/public
     
-    # Enable PHP handler with FrankenPHP
+    # Enable compression (optional)
+    encode zstd br gzip
+    
+    # Execute PHP files and serve assets
     php_server
-    
-    # Handle static files
-    file_server
-    
-    # Handle Laravel routes
-    try_files {path} {path}/ /index.php?{query}
     
     # Security headers
     header {
@@ -33,28 +24,19 @@
         X-Frame-Options DENY
         X-XSS-Protection "1; mode=block"
         Referrer-Policy strict-origin-when-cross-origin
-        
-        # Cache headers for assets
-        @static {
-            path *.css *.js *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
-        }
-        @static Cache-Control "public, max-age=31536000, immutable"
     }
+    
+    # Cache headers for static assets
+    @static path_regexp \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$
+    header @static Cache-Control "public, max-age=31536000, immutable"
     
     # Logging
     log {
         output stdout
         level INFO
     }
-    
-    # Enable gzip compression
-    encode gzip zstd
-    
-    # Error handling
-    handle_errors {
-        respond "Something went wrong" 500
-    }
 }
+
 
 # Production HTTPS (uncomment for production)
 # your-domain.com {

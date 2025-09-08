@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   # Laravel App with FrankenPHP
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: DockerFile
     image: laravel-frankenphp
     container_name: laravel-app
     restart: unless-stopped
@@ -86,7 +84,7 @@ services:
   reverb:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: DockerFile
     image: laravel-frankenphp
     container_name: laravel-reverb
     restart: unless-stopped
