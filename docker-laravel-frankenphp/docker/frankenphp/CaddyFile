@@ -1,0 +1,81 @@
+{
+    # Enable FrankenPHP
+    frankenphp
+    # Enable HTTP/3
+    servers {
+        protocol {
+            experimental_http3
+        }
+    }
+}
+
+# Development
+:80 {
+    # Set root directory
+    root * /app/public
+    
+    # Enable PHP handler with FrankenPHP
+    php_server
+    
+    # Handle static files
+    file_server
+    
+    # Handle Laravel routes
+    try_files {path} {path}/ /index.php?{query}
+    
+    # Security headers
+    header {
+        # Remove server info
+        -Server
+        
+        # Security headers
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+        
+        # Cache headers for assets
+        @static {
+            path *.css *.js *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
+        }
+        @static Cache-Control "public, max-age=31536000, immutable"
+    }
+    
+    # Logging
+    log {
+        output stdout
+        level INFO
+    }
+    
+    # Enable gzip compression
+    encode gzip zstd
+    
+    # Error handling
+    handle_errors {
+        respond "Something went wrong" 500
+    }
+}
+
+# Production HTTPS (uncomment for production)
+# your-domain.com {
+#     root * /app/public
+#     php_server
+#     file_server
+#     try_files {path} {path}/ /index.php?{query}
+#     
+#     header {
+#         -Server
+#         X-Content-Type-Options nosniff
+#         X-Frame-Options DENY
+#         X-XSS-Protection "1; mode=block"
+#         Referrer-Policy strict-origin-when-cross-origin
+#         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+#         
+#         @static {
+#             path *.css *.js *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
+#         }
+#         @static Cache-Control "public, max-age=31536000, immutable"
+#     }
+#     
+#     encode gzip zstd
+# }

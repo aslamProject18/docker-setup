@@ -1,0 +1,42 @@
+FROM dunglas/frankenphp:1-php8.4
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git curl zip unzip supervisor \
+    libpng-dev libonig-dev libxml2-dev libzip-dev \
+    libpq-dev libfreetype6-dev libjpeg62-turbo-dev libicu-dev libwebp-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) \
+    pdo_mysql pdo_pgsql mbstring xml zip bcmath gd intl opcache pcntl posix sockets exif fileinfo
+
+# Install Redis extension
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Install Node.js (20.x LTS)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code (akan di-mount sebagai volume)
+# COPY . .
+
+# Copy configurations
+COPY docker/frankenphp/Caddyfile /etc/caddy/Caddyfile
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create log directories
+RUN mkdir -p /var/log/supervisor
+
+# Expose ports
+EXPOSE 80 443
+
+# Start supervisor and FrankenPHP
+CMD ["sh", "-c", "supervisord -c /etc/supervisor/conf.d/supervisord.conf & frankenphp run --config /etc/caddy/Caddyfile"]
